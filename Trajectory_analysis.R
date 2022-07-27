@@ -174,6 +174,89 @@ PCA_BP_Vectors = qplot(PWS_PCA$x[,1],
         axis.title = element_text(size = 14), 
         axis.text = element_text(size = 12))
 
+
+## new graph. Summmarize PC1 and PC2 for each morph pair
+## The pca data from prcomp should be in the same order as
+## the df the body shape data was pulled from. 
+
+PWS_data_clean
+PWS_PCA$x[,1]
+PWS_PCA$x[,2]
+rrpp$Vector
+
+
+OG_data = PWS_data_clean %>% 
+  dplyr::select(SpecimenID, 
+                Lake,
+                Morph, 
+                BP)
+
+PC1_x = PWS_PCA$x[,1] %>% 
+  as_tibble() %>% 
+  rename(PC1_x = value)
+
+PC2_x = PWS_PCA$x[,2] %>% 
+  as_tibble() %>% 
+  rename(PC2_x = value)
+
+BP_vec = rrpp$Vector %>% 
+  as_tibble()
+
+new_graph_df = bind_cols(OG_data, 
+                         PC1_x, 
+                         PC2_x, 
+                         BP_vec)
+
+sum_data = new_graph_df %>% 
+  group_by(Lake, 
+           BP, 
+           value) %>% 
+  summarize(mean_PC1_x = mean(PC1_x), 
+            mean_PC2_x = mean(PC2_x))
+
+
+new_pheno_plot = ggplot(data = sum_data, 
+       aes(x = mean_PC1_x, 
+           y = mean_PC2_x)) +
+  geom_segment(x = 0.00152, 
+               y = 0.0202, 
+               xend = -0.00996, 
+               yend = 0.0150, 
+               size = 2)+
+  geom_segment(x = 0.0253, 
+               y = -0.0163, 
+               xend = 0.0115, 
+               yend = -0.0225, 
+               size = 2)+
+  geom_segment(x = 0.00497, 
+               y = 0.00900, 
+               xend = -0.0191, 
+               yend = -0.00183, 
+               size = 2)+
+  geom_segment(x = 0.0170, 
+               y = 0.0144, 
+               xend = -0.0191, 
+               yend = -0.00183, 
+               size = 2)+
+  geom_segment(x = -0.00646, 
+               y = 0.00987, 
+               xend = 0.000588, 
+               yend = 0.0134, 
+               size = 2)+
+  geom_point(aes(col = value,
+             # shape = rrpp$Vector, 
+             shape = BP,
+             size = 4))+
+  scale_color_manual(values = colours)+
+  scale_shape_manual(values = simple_shapes)+
+  labs(x = 'Principal component 1', 
+       y = 'Principal component 2')+
+  theme(panel.grid = element_blank(), 
+        legend.position = 'none',
+        axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12))
+
+
 ## take the PC1 and PC2 scores from prcomp
 ## then test the diffrences between the angles
 ## then use the function parallel_analysis
@@ -294,15 +377,18 @@ Mag_TBP2_VBP = dist_mean_boot(A = Coords_SPLIT_Vector$TBP2,
 
 # combine graphs ----------------------------------------------------------
 library(patchwork)
-PCA_BP_Vectors
+# PCA_BP_Vectors
 PCA_BodyShape
+new_pheno_plot
 
 Phenotype_analyses = PCA_BodyShape|PCA_BP_Vectors
 
-ggsave('Phenotype_trajectory_analysis_FINAL.tiff',
+Phenotype_analyses = PCA_BodyShape|new_pheno_plot
+
+ggsave('Phenotype_trajectory_analysis_FINAL_NEW.tiff',
        plot = Phenotype_analyses, 
        dpi = 'retina', 
        unit = 'cm', 
        width = 25, 
-       height = 20
+       height = 10
 )

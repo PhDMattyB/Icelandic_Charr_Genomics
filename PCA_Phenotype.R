@@ -42,7 +42,7 @@ Phenotype_clean = Phenotype_mid %>%
                      'Svinavatn', 
                      'Thingvallavatn', 
                      'Vatnshlidarvatn')) %>% 
-  select(1:4, 
+  dplyr::select(1:4, 
          Morph2,
          LaMorph, 
          Fork.length, 
